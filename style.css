@@ -4,13 +4,15 @@
     --mid-color: rgb(0, 0, 0);
     --lo-color: rgb(20, 20, 20);
     --scale-factor: 1;
-    --gggg: #ccc
+    --gggg: #ccc;
+    --colo: rgb(255,255,255);
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    touch-action: manipulation;
 }
 
 #play_button_square {
@@ -68,7 +70,7 @@ body {
     -webkit-appearance: none;
     appearance: none;
 
-    background-color: #e7e7e7;
+    background-color: var(--colo);
     width: calc((4vw + 4vh)/2);
     height: calc((4vw + 4vh)/2);
     margin-top: calc((2vw + 2vh)/4 - (4vw + 4vh)/4);

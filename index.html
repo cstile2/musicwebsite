@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="favicon /apple-icon-180x180.png" />
   </head>
   <body>
-    <audio id="main_audio_player" onloadedmetadata="MetaDataLoaded()" ontimeupdate="TimeUpdate()" onended="MusicEnded()"></audio>
+    <audio id="main_audio_player" oncanplay="OnCanPlay()" ontimeupdate="TimeUpdate()" onended="MusicEnded()"></audio>
 
     <div id="page">
       <div id="page_title">Colsen's Music</div>
@@ -38,7 +38,8 @@
       <img src="images/nectar.jpg" id="cover" />
 
       <div class="playstuff">
-        <input type="range" id="pro_bar" oninput="BarInput()" min="0.0" max="100.0" step="0.1" />
+        <!-- <div id="indicator" style="color: white; font-size: 50px">Hello</div> -->
+        <input type="range" id="pro_bar" oninput="BarInput()" min="0.0" max="100.0" step="0.01" />
 
         <div id="controls">
           <div class="skip_square" id="skip_back">
