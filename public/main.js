@@ -2,7 +2,7 @@ const artists = ["Daft Punk", "Mk.Gee", "Tame Impala", "Omar Apollo", "Metallica
 const SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
 const BACKEND = "http://34.58.86.86:3000";
 
-let list_of_songs = ["audio/hyperreal.wav", "audio/Say.wav", "audio/guitar.wav", "https://streams.radiomast.io/ref-128k-mp3-stereo", `${BACKEND}/audio_stream/Say.wav`];
+let list_of_songs = [`${BACKEND}/stream/hyperreal.wav`, `${BACKEND}/stream/Say.wav`, `${BACKEND}/stream/guitar.wav`, "https://streams.radiomast.io/ref-128k-mp3-stereo", `${BACKEND}/stream/Say.wav`];
 let song_titles = ["New Planet", "Say", "Guitar Sound", "Radio", "Streamed"];
 let song_artists = ["Colsen", "Colsen", "IDK", "Radio Mast", "ME"];
 let song_images = ["images/red.jpg", "images/basement.jpg", "images/nectar.jpg", "images/meeky.jpg", "images/meeky.jpg"];
@@ -76,14 +76,13 @@ function StartLocalSong() {
 async function StartYoutubeSong(yt_song) {
     SetPlayerToStandBy();
 
-    let response = await fetch(`${BACKEND}/url/${yt_song.youtube_id}`);
-    let url = await response.text();
+    let response = await fetch(`${BACKEND}/url/${yt_song.youtube_id}`); 
+    let data = await response.json();
 
-    SetAudioSrc(url);
+    SetAudioSrc(data.url);
     UpdateMediaPlayerNew(yt_song);
 }
 function PlayMusic() {
-    main_audio_player.play();
     document.getElementById("play_button_path").setAttribute("d", " M 31.667 30 L 56.667 30 L 56.667 99.5 L 31.667 99.5 L 31.667 30 L 31.667 30 Z  M 0 64 C 0 28.677 28.677 0 64 0 C 99.323 0 128 28.677 128 64 C 128 99.323 99.323 128 64 128 C 28.677 128 0 99.323 0 64 L 0 64 Z  M 72.667 30 L 97.667 30 L 97.667 99.5 L 72.667 99.5 L 72.667 30 Z " );
     playing = true;
 }
@@ -240,7 +239,8 @@ async function SaveSongToSavedSongs(text) {
 }
 
 async function GetYouTubeVideoId(query) {
-    let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    // let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    let response = await fetch(`${BACKEND}/search/${encodeURIComponent(query)}`);
     let data = await response.json();
     const item = data.items[0];
     console.log(data.items[0]);
@@ -248,7 +248,8 @@ async function GetYouTubeVideoId(query) {
 }
 
 async function GatherSearchItems(query) {
-    let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    // let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    let response = await fetch(`${BACKEND}/search/${encodeURIComponent(query)}`);
     let data = await response.json();
     const videos_only = data.items.filter(item => item.id.videoId);
     
@@ -268,11 +269,12 @@ async function GatherSearchItems(query) {
 }
 async function GatherSavedByYTID() {
     const response = await fetch(`${BACKEND}/saved_songs`);
-    const text = await response.text();
-    const lines = text.split(/\r?\n/);
+    const data = await response.json();
+    console.log(data);
     
     let ret = [];
-    for (const id of lines) {
+    for (const song_info of data) {
+        const id = song_info.youtube_id;
         if (id == "") {
             // notify("saved song data contains invalid formatting");
             continue;
