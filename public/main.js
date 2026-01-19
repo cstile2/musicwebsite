@@ -1,6 +1,6 @@
 const artists = ["Daft Punk", "Mk.Gee", "Tame Impala", "Omar Apollo", "Metallica"];
 const SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
-const BACKEND = "http://127.0.0.1:3000";
+const BACKEND = "34.58.86.86:3000";
 
 let list_of_songs = ["audio/hyperreal.wav", "audio/Say.wav", "audio/guitar.wav", "https://streams.radiomast.io/ref-128k-mp3-stereo", `${BACKEND}/audio_stream/Say.wav`];
 let song_titles = ["New Planet", "Say", "Guitar Sound", "Radio", "Streamed"];

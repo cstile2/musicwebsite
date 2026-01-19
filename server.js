@@ -19,7 +19,7 @@ function getContentType(ext) {
   }
 }
 function applyCORS(req, res) {
-  const allowedOrigin = 'http://localhost:3000';
+  const allowedOrigin = 'http://34.58.86.86:3000/';
   const origin = req.headers.origin;
 
   if (origin === allowedOrigin) {
