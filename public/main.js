@@ -20,99 +20,107 @@ notif.timer = 0;
 
 main_audio_player.src = list_of_songs[0];
 
-function OnTimeUpdate() {
+function on_player_time_update() {
     if (pause_time_update || waiting_for_on_can_play) return;
     slider.value = (main_audio_player.currentTime / main_audio_player.duration) * 100.0;
-    PaintSliderTrack();
+    update_player_scrubber();
 }
-function OnCanPlay() {
+function on_player_can_play() {
     if(want_to_play) {
-        PlayMusic();
+        play_music();
     }
     want_to_play = false;
     waiting_for_on_can_play = false;
     root.style.setProperty('--thumb-color', 'var(--hi-color)');
 }
-function OnMusicEnded() {
-    PauseMusic();
+function on_playback_finished() {
+    pause_music();
 }
 
-function BarInput() {
-    PaintSliderTrack();
+function on_scrubber_set() {
+    update_player_scrubber();
 }
-function BarOnMouseUp() {
+function on_scrubber_mouse_up() {
     main_audio_player.currentTime = (slider.value / 100.0) * main_audio_player.duration;
     pause_time_update = false;
 }
-function BarOnMouseDown() {
+function on_scrubber_mouse_down() {
     pause_time_update = true;
 }
 
-function PaintSliderTrack() {
+function update_player_scrubber() {
     const sliderValue = slider.value;
     slider.style.background = `linear-gradient(to right, var(--li-color) ${sliderValue}%, var(--lifted-color) ${sliderValue}%)`;
 }
-function SetPlayerToStandBy() {
+function set_player_to_standby() {
     waiting_for_on_can_play = true;
     want_to_play = true;
     root.style.setProperty('--thumb-color', 'gray');
     slider.value = 0;
-    PaintSliderTrack();
-    PauseMusic();
+    update_player_scrubber();
+    pause_music();
     document.getElementById("play_button_path").setAttribute("d", "M 0 64 C 0 28.677 28.677 0 64 0 C 99.323 0 128 28.677 128 64 C 128 99.323 99.323 128 64 128 C 28.677 128 0 99.323 0 64 L 0 64 Z" );
 }
-function SetAudioSrc(url) {
+function set_audio_source(url) {
     main_audio_player.src = url;
     main_audio_player.load();
 }
-function StartLocalSong() {
-    SetPlayerToStandBy();
+function start_local_song() {
+    set_player_to_standby();
 
     let url = list_of_songs[current_song];
 
-    SetAudioSrc(url);
-    UpdateMediaPlayer();
+    set_audio_source(url);
+    update_media_player();
 }
-async function StartYoutubeSong(yt_song) {
-    SetPlayerToStandBy();
+async function start_youtube_song(yt_song) {
+    set_player_to_standby();
 
-    let response = await fetch(`${BACKEND}/url/${yt_song.youtube_id}`); 
-    let data = await response.json();
+    try {
+        let response = await fetch(`${BACKEND}/url/${yt_song.youtube_id}`);
+        let data = await response.json();
+        console.log(data);
+    
 
-    SetAudioSrc(data.url);
-    UpdateMediaPlayerNew(yt_song);
+        set_audio_source(data.url);
+        update_media_player_new(yt_song);
+    } catch (err) {
+        console.log(err);
+    }
 }
-function PlayMusic() {
+function toggle_playback() {
+    if (playing) {
+        pause_music();
+    } else {
+        play_music();
+    }
+}
+function play_music() {
+    main_audio_player.play();
     document.getElementById("play_button_path").setAttribute("d", " M 31.667 30 L 56.667 30 L 56.667 99.5 L 31.667 99.5 L 31.667 30 L 31.667 30 Z  M 0 64 C 0 28.677 28.677 0 64 0 C 99.323 0 128 28.677 128 64 C 128 99.323 99.323 128 64 128 C 28.677 128 0 99.323 0 64 L 0 64 Z  M 72.667 30 L 97.667 30 L 97.667 99.5 L 72.667 99.5 L 72.667 30 Z " );
     playing = true;
 }
-function PauseMusic() {
+function pause_music() {
     main_audio_player.pause();
     document.getElementById("play_button_path").setAttribute("d", " M 0 64 C 0 28.677 28.677 0 64 0 C 99.323 0 128 28.677 128 64 C 128 99.323 99.323 128 64 128 C 28.677 128 0 99.323 0 64 Z  M 107.074 64.589 L 73.037 84.24 L 39 103.891 L 39 64.589 L 39 25.287 L 73.037 44.938 L 107.074 64.589 Z " );
     playing = false;
 }
-function NextSong() {
+function next_track() {
     current_song += 1;
     if (current_song >= list_of_songs.length) {
         current_song = 0;
     }
-    StartLocalSong();
+    start_local_song();
 }
-function PreviousSong() {
+function previous_track() {
     current_song -= 1;
     if (current_song < 0) {
         current_song = list_of_songs.length - 1;
     }
-    StartLocalSong();
+    start_local_song();
 }
-function PlayPause() {
-    if (playing) {
-        PauseMusic();
-    } else {
-        PlayMusic();
-    }
-}
-function UpdateMediaPlayer() {
+
+function update_media_player() {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: song_titles[current_song],
         artist: song_artists[current_song],
@@ -123,8 +131,7 @@ function UpdateMediaPlayer() {
     });
     document.getElementById("cover").src = song_images[current_song];
 }
-
-function UpdateMediaPlayerNew(info) {
+function update_media_player_new(info) {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: info.title,
         artist: info.artist,
@@ -137,19 +144,19 @@ function UpdateMediaPlayerNew(info) {
 }
 
 // DOM
-function CollectionList(parent, _label) {
+function collection_list(parent, _label) {
     let label = document.createElement('div');
     label.className = "collection_list_label";
     label.textContent = _label;
     parent.appendChild(label);
 
-    let collection_list = document.createElement('div');
-    collection_list.className = "collection_list";
-    parent.appendChild(collection_list);
+    let _collection_list = document.createElement('div');
+    _collection_list.className = "collection_list";
+    parent.appendChild(_collection_list);
 
-    return collection_list;
+    return _collection_list;
 }
-function RegenerateAlbumPage(album_element) {
+function regenerate_album_page(album_element) {
     let page = document.getElementById("album_page");
 
     page.replaceChildren();
@@ -179,7 +186,7 @@ function RegenerateAlbumPage(album_element) {
         return;
     }
 
-    FetchTracks(album_element.simple.spotify_id).then((tracks) => {
+    fetch_tracks(album_element.simple.spotify_id).then((tracks) => {
         let i = 0;
         for (const track of tracks.items) {
             document.getElementById("songlist").insertAdjacentHTML("beforeend", 
@@ -187,14 +194,14 @@ function RegenerateAlbumPage(album_element) {
                 <div class="row" data-track="${i}">
                     ${i+1}
                     <div style="width: calc(4 * var(--s));"></div>
-                    <div class="rowtext"><div class="title">${track.name}</div><div class="artist">${album_element.dataset.artist}</div></div>
+                    <div class="rowtext"><div class="title">${track.name}</div><div class="artist">${track.artists[0].name}</div></div>
                 </div>
                 `);
             i += 1;
         }
     });
 }
-function GoToPage(id) {
+function go_to_page(id) {
     for( const item of document.getElementsByClassName("pageview")) {
         item.style.display = "none";
     }
@@ -202,33 +209,34 @@ function GoToPage(id) {
 }
 
 // APIs
-function SpotiFetch(suburl) {
+async function acquire_spotify_access_token() {
+    if (spotify_access_token != null) return;
+    const response = await fetch(`${BACKEND}/token`);
+    const data = await response.json();
+    spotify_access_token = data.access_token;
+}
+function spotifetch(suburl) {
     return fetch(`https://api.spotify.com/v1/${suburl}`, {
         headers: {
             "Authorization": `Bearer ${spotify_access_token}`
         }
     });
 }
-async function FetchAlbums(artist_id) {
-    const response = await SpotiFetch(`artists/${artist_id}/albums`);
+async function fetch_albums(artist_id) {
+    const response = await spotifetch(`artists/${artist_id}/albums`);
     return response.json();
 }
-async function FetchTracks(spotify_id) {
-    const response = await SpotiFetch(`albums/${spotify_id}/tracks`);
+async function fetch_tracks(spotify_id) {
+    const response = await spotifetch(`albums/${spotify_id}/tracks`);
     return response.json();
 }
-async function AcquireSpotifyToken() {
-    if (spotify_access_token != null) return;
-    const response = await fetch(`${BACKEND}/token`);
-    const data = await response.json();
-    spotify_access_token = data.access_token;
-}
-async function SearchArtist(artistName) {
-  const response = await SpotiFetch(`search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`);
+async function search_artist(artistName) {
+  const response = await spotifetch(`search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`);
   const data = await response.json();
   return data.artists.items[0];
 }
-async function SaveSongToSavedSongs(text) {
+
+async function save_song_to_playlist(text) {
     let response = await fetch(`${BACKEND}/save_song`, {
         method: "POST",
         headers: {
@@ -236,18 +244,22 @@ async function SaveSongToSavedSongs(text) {
         },
         body: text,
     })
+    let data = await response.json();
+    if ("message" in data && data.message == "DUPLICATE" && "title" in data) {
+        notify(`Already added ${data.title}`, "rgb(255, 180, 67)");
+    }
 }
 
-async function GetYouTubeVideoId(query) {
+async function find_youtube_id(artist, title) {
     // let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
-    let response = await fetch(`${BACKEND}/search/${encodeURIComponent(query)}`);
+    let response = await fetch(`${BACKEND}/search/${encodeURIComponent(`${artist} ${title} "topic"`)}`);
     let data = await response.json();
     const item = data.items[0];
     console.log(data.items[0]);
     return item.id.videoId;
 }
 
-async function GatherSearchItems(query) {
+async function gather_searched_songs(query) {
     // let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
     let response = await fetch(`${BACKEND}/search/${encodeURIComponent(query)}`);
     let data = await response.json();
@@ -261,16 +273,15 @@ async function GatherSearchItems(query) {
             image: item.snippet.thumbnails.default.url,
             youtube_id: item.id.videoId,
             on_click: function(_this) {
-                StartYoutubeSong(_this.simple);
+                start_youtube_song(_this.simple);
             },
         });
     }
     return ret;
 }
-async function GatherSavedByYTID() {
+async function gather_saved_songs() {
     const response = await fetch(`${BACKEND}/saved_songs`);
     const data = await response.json();
-    console.log(data);
     
     let ret = [];
     for (const song_info of data) {
@@ -288,13 +299,13 @@ async function GatherSavedByYTID() {
             youtube_id: id,
             thumbnail_zoom: null,
             on_click: function(_this) {
-                StartYoutubeSong(_this.simple);
+                start_youtube_song(_this.simple);
             },
         });
     }
     return ret;
 }
-async function GatherTopChartItems() {
+async function gather_top_chart_songs() {
     const response = await fetch(`${BACKEND}/top_tracks`);
     const data = await response.json();
     
@@ -313,25 +324,25 @@ async function GatherTopChartItems() {
             title: track.name,
             artist: track.artist.name,
             image: image,
-            on_click: CacheThisYoutubeID,
+            on_click: cache_this_youtube_id,
         });
     }
     return ret;
 }
-async function CacheThisYoutubeID(_this) {
+async function cache_this_youtube_id(_this) {
     if (!('youtube_id' in _this.simple)) {
         console.log("fetching the YT video for _this track...");
         console.log(`${_this.simple.artist} ${_this.simple.title} "topic"`);
-        _this.simple.youtube_id = await GetYouTubeVideoId(`${_this.simple.artist} ${_this.simple.title} "topic"`);
+        _this.simple.youtube_id = await find_youtube_id(_this.simple.artist, _this.simple.title);
         console.log(`found: ${_this.simple.youtube_id}`);
-        StartYoutubeSong(_this.simple);
+        start_youtube_song(_this.simple);
         _this.removeEventListener('click', _this.simple.on_click);
         _this.addEventListener('click', function() {
-            StartYoutubeSong(_this.simple);
+            start_youtube_song(_this.simple);
         });
     }
 }
-function InstantiateMusicItem(parent, track) {
+function reifiy_music_item(parent, track) {
     let classes = "collection_list_element_img";
     if ("thumbnail_zoom" in track) {
         classes += " thumbnail_zoom";
@@ -348,42 +359,42 @@ function InstantiateMusicItem(parent, track) {
     );
     parent.lastElementChild.simple = track;
 }
-function InstantiateMusicItems(parent, arr) {
+function reify_music_item(parent, arr) {
     for (track of arr) {
-        InstantiateMusicItem(parent, track);
+        reifiy_music_item(parent, track);
     }
 }
-async function PopulateHomePage() {
+async function populate_home_page() {
     let home_page_element = document.getElementById("home_page");
 
-    let mine = CollectionList(home_page_element, "Colsen");
-    InstantiateMusicItem(mine, {
+    let mine = collection_list(home_page_element, "Colsen");
+    reifiy_music_item(mine, {
         title: "mine",
         artist: "Colsen",
         image: "images/red.jpg",
         on_click: function (_this) {
-            RegenerateAlbumPage(_this);
-            GoToPage("album_page");
+            regenerate_album_page(_this);
+            go_to_page("album_page");
         },
         spotify_id: 0,
     });
-    let saved_songs = CollectionList(home_page_element, "Saved Songs");
-    GatherSavedByYTID()
+    let saved_songs = collection_list(home_page_element, "Saved Songs");
+    gather_saved_songs()
     .then(items => {
-        InstantiateMusicItems(saved_songs, items);
+        reify_music_item(saved_songs, items);
     });
 
-    let top_charts = CollectionList(home_page_element, "Top Charts");
-    GatherTopChartItems()
+    let top_charts = collection_list(home_page_element, "Top Charts");
+    gather_top_chart_songs()
     .then(items => {
-        InstantiateMusicItems(top_charts, items);
+        reify_music_item(top_charts, items);
     });
 
-    await AcquireSpotifyToken();
+    await acquire_spotify_access_token();
     for (let i = 0; i < artists.length; i++) {
-        let artist = await SearchArtist(artists[i]);
-        let tracks = await FetchAlbums(artist.id);
-        let collection_list = CollectionList(home_page_element, artists[i]);
+        let artist = await search_artist(artists[i]);
+        let tracks = await fetch_albums(artist.id);
+        let _collection_list = collection_list(home_page_element, artists[i]);
         let arr = [];
         for (const album of tracks.items) {
             arr.push({
@@ -392,26 +403,29 @@ async function PopulateHomePage() {
                 image: album.images[0].url,
                 youtube_id: null,
                 on_click: function(_this) {
-                    RegenerateAlbumPage(_this);
-                    GoToPage("album_page");
+                    regenerate_album_page(_this);
+                    go_to_page("album_page");
                 },
                 spotify_id: album.id,
             });
         }
-        InstantiateMusicItems(collection_list, arr);
+        reify_music_item(_collection_list, arr);
     }
 }
 
-function notify(text) {
+function notify(text, color) {
     notif.textContent = text;
     notif.timer = 200;
+    if (!color) {
+        notif.style.color = "white";
+    } else {
+        notif.style.color = color;
+    }
 }
 function notif_update() {
     notif.timer -= 1;
     let adjusted = Math.min(0, notif.timer);
-    let col = notif.timer * 2;
     notif.style.right = `${adjusted}px`;
-    notif.style.color = `rgb(${col},${col},${col})`;
     requestAnimationFrame(notif_update);
 }
 requestAnimationFrame(notif_update);
@@ -420,22 +434,22 @@ requestAnimationFrame(notif_update);
 document.addEventListener("keydown", (event) => {
     if(event.key == ' ') {
         if (document.activeElement === document.getElementById("search_bar")) {} else {
-            PlayPause();
+            toggle_playback();
         }
     }
 });
-document.getElementById("play_button_square").addEventListener("click", PlayPause);
-document.getElementById("skip_back").addEventListener("click", PreviousSong);
-document.getElementById("skip_forward").addEventListener("click", NextSong);
+document.getElementById("play_button_square").addEventListener("click", toggle_playback);
+document.getElementById("skip_back").addEventListener("click", previous_track);
+document.getElementById("skip_forward").addEventListener("click", next_track);
 const search_bar_element = document.getElementById("search_bar");
 
 search_bar_element.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         event.preventDefault();
         event.stopPropagation();
-        GatherSearchItems(search_bar_element.value)
+        gather_searched_songs(search_bar_element.value)
         .then(items => {
-            InstantiateMusicItems(document.getElementById("search_page"), items);
+            reify_music_item(document.getElementById("search_page"), items);
         });
     }
 });
@@ -445,18 +459,18 @@ document.addEventListener("click", event => {
         const c = event.target.closest(".collection_list_element_div");
         if (!("youtube_id" in c.simple)) {
             notify(`waiting for youtube id`);
-            GetYouTubeVideoId(`${c.simple.artist} ${c.simple.title} "topic"`).then(id => {
+            find_youtube_id(c.simple.artist, c.simple.title).then(id => {
                 c.simple.youtube_id = id;
-                SaveSongToSavedSongs(`${c.simple.title}\n${c.simple.artist}\n${c.simple.youtube_id}`);
+                save_song_to_playlist(`${c.simple.title}\n${c.simple.artist}\n${c.simple.youtube_id}`);
                 notify(`Saved ${c.simple.title}`);
             });
             return;
         }
         if (c.simple.youtube_id == null) {
-            notify(`Could not save ${c.simple.title}`);
+            notify(`Could not save playlist ${c.simple.title}`, "rgb(230, 58, 58)");
             return;
         }
-        SaveSongToSavedSongs(`${c.simple.title}\n${c.simple.artist}\n${c.simple.youtube_id}`);
+        save_song_to_playlist(`${c.simple.title}\n${c.simple.artist}\n${c.simple.youtube_id}`);
         notify(`Saved ${c.simple.title}`);
         return;
     }
@@ -469,12 +483,12 @@ document.addEventListener("click", event => {
 
 // Create Cross Platform Media Session
 if ('mediaSession' in navigator) {
-    UpdateMediaPlayer();
+    update_media_player();
 
-    navigator.mediaSession.setActionHandler('play', function() { PlayMusic(); });
-    navigator.mediaSession.setActionHandler('pause', function() { PauseMusic(); });
-    navigator.mediaSession.setActionHandler('previoustrack', function() { PreviousSong(); });
-    navigator.mediaSession.setActionHandler('nexttrack', function() { NextSong(); });
+    navigator.mediaSession.setActionHandler('play', function() { play_music(); });
+    navigator.mediaSession.setActionHandler('pause', function() { pause_music(); });
+    navigator.mediaSession.setActionHandler('previoustrack', function() { previous_track(); });
+    navigator.mediaSession.setActionHandler('nexttrack', function() { next_track(); });
     navigator.mediaSession.setActionHandler('seekto', function(details) {
         main_audio_player.currentTime = details.seekTime;
         navigator.mediaSession.setPositionState({
@@ -487,14 +501,14 @@ if ('mediaSession' in navigator) {
 
 notif.timer = -100;
 slider.value = 0;
-PaintSliderTrack();
+update_player_scrubber();
 if (/Mobi|Android/i.test(navigator.userAgent)) {
     root.style.setProperty("--scale-factor", "1");
 } else {
     root.style.setProperty("--scale-factor", "0.3");
 }
-PopulateHomePage();
-GoToPage("home_page");
+populate_home_page();
+go_to_page("home_page");
 
 
 // // ====================================== try this to play audio in background from the

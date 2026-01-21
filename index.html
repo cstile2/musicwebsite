@@ -17,12 +17,12 @@
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-icon-180x180.png" />
   </head>
   <body>
-    <audio id="main_audio_player" oncanplay="OnCanPlay()" ontimeupdate="OnTimeUpdate()" onended="OnMusicEnded()" onstalled="console.log('stalled')"></audio>
+    <audio id="main_audio_player" oncanplay="on_player_can_play()" ontimeupdate="on_player_time_update()" onended="on_playback_finished()" onstalled="console.log('stalled')"></audio>
 
     <div class="navbar navbarheight">
-      <div class="navbutton" onclick="GoToPage('home_page')">home</div>
-      <div class="navbutton" onclick="GoToPage('album_page')">album</div>
-      <div class="navbutton" onclick="GoToPage('search_page')">search</div>
+      <div class="navbutton" onclick="go_to_page('home_page')">home</div>
+      <div class="navbutton" onclick="go_to_page('album_page')">album</div>
+      <div class="navbutton" onclick="go_to_page('search_page')">search</div>
     </div>
     <div id="notif" class="notif">Saved Item</div>
     <div class="navbarheight"></div>
@@ -65,7 +65,7 @@
       <img src="images/nectar.jpg" id="cover" />
 
       <div class="bar_and_skips_and_play">
-        <input type="range" id="pro_bar" oninput="BarInput()" min="0.0" max="100.0" step="0.01" onpointerdown="BarOnMouseDown()" onpointerup="BarOnMouseUp()" />
+        <input type="range" id="pro_bar" oninput="on_scrubber_set()" min="0.0" max="100.0" step="0.01" onpointerdown="BarOnMouseDown()" onpointerup="BarOnMouseUp()" />
 
         <div id="skips_and_play">
           <div class="skip_square" id="skip_back">
