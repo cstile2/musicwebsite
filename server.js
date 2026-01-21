@@ -23,8 +23,11 @@ function get_apis() {
   }
 }
 const APIS = get_apis();
-const pool = mysql.createPool(APIS.SQL_INFO);
-const LAST_FM_ROOT = "http://ws.audioscrobbler.com/2.0/";
+let pool = null;
+try {
+  pool = mysql.createPool(APIS.SQL_INFO);
+} catch(err) {}
+const LAST_FM_URL = "http://ws.audioscrobbler.com/2.0/";
 const LIKED_SONGS_PLAYLIST = 1;
 const JSON_EMPTY = "{}";
 async function get_spotify_access_token() {
@@ -155,7 +158,7 @@ const server = http.createServer(async (req, res) => {
     });
 
     try {
-      const response = await fetch(`${LAST_FM_ROOT}?${params.toString()}`);
+      const response = await fetch(`${LAST_FM_URL}?${params.toString()}`);
       const text = await response.text();
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -226,6 +229,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
   else if (url =='/saved_songs' && method == 'GET') {
+    if (pool == null) return;
     const [result] = await pool.execute(`
       SELECT
         s.id AS song_id,
@@ -255,7 +259,7 @@ const server = http.createServer(async (req, res) => {
       limit: 20
     };
     const queryString = new URLSearchParams(params).toString();
-    const url = `${LAST_FM_ROOT}?${queryString}`;
+    const url = `${LAST_FM_URL}?${queryString}`;
     // console.log(url);
 
     fetch(url).then(response => {
