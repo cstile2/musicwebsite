@@ -17,7 +17,7 @@ process.on('uncaughtException', err => {
 let INDEX_HTML = fs.readFileSync(path.join(PROCESS_DIRECTORY, 'index.html'));
 function get_apis() {
   try {
-    return JSON.parse(fs.readFileSync('/etc/secrets/<filename>', 'utf-8'));
+    return JSON.parse(fs.readFileSync('/etc/secrets/api_secrets.json', 'utf-8'));
   } catch (err) {
     return JSON.parse(fs.readFileSync('../../../shared_app_info/api_secrets.json', 'utf-8'))
   }
