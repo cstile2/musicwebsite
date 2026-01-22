@@ -66,9 +66,10 @@ function get_content_type(ext) {
 }
 function apply_CORS(req, res) {
   const allowedOrigin = 'http://34.58.86.86:3000';
-  const origin = req.headers.origin;
+  // const origin = req.headers.origin;
+  const origin = "*";
 
-  if (origin === allowedOrigin) {
+  if (origin === allowedOrigin || true) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -229,7 +230,10 @@ const server = http.createServer(async (req, res) => {
     });
   }
   else if (url =='/saved_songs' && method == 'GET') {
-    if (pool == null) return;
+    if (pool == null) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON_EMPTY);
+    }
     const [result] = await pool.execute(`
       SELECT
         s.id AS song_id,

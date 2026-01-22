@@ -1,6 +1,6 @@
 const artists = ["Daft Punk", "Mk.Gee", "Tame Impala", "Omar Apollo", "Metallica"];
 const SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
-const BACKEND = "http://34.58.86.86:3000";
+const BACKEND = ""; //"http://34.58.86.86:3000"; // use window.location.href for auto update
 
 let list_of_songs = [`${BACKEND}/stream/hyperreal.wav`, `${BACKEND}/stream/Say.wav`, `${BACKEND}/stream/guitar.wav`, "https://streams.radiomast.io/ref-128k-mp3-stereo", `${BACKEND}/stream/Say.wav`];
 let song_titles = ["New Planet", "Say", "Guitar Sound", "Radio", "Streamed"];
@@ -367,10 +367,10 @@ function reify_music_item(parent, arr) {
 async function populate_home_page() {
     let home_page_element = document.getElementById("home_page");
 
-    let mine = collection_list(home_page_element, "Colsen");
+    let mine = collection_list(home_page_element, "Suggested");
     reifiy_music_item(mine, {
-        title: "mine",
-        artist: "Colsen",
+        title: "Some Playlist",
+        artist: "Some Dude",
         image: "images/red.jpg",
         on_click: function (_this) {
             regenerate_album_page(_this);
